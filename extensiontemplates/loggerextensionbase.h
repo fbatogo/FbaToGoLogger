@@ -30,13 +30,13 @@ public:
 
     virtual ~LoggerExtensionBase() = default;
 
-    std::string extensionName();
+    std::string extensionName() const;
 
 #ifdef USING_QT
-    QString qstringExtensionName();
+    QString qstringExtensionName() const;
 #endif // USING_QT
 
-    int extensionType();
+    int extensionType() const;
 
 private:
     std::string mExtensionName;

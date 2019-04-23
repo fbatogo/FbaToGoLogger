@@ -33,6 +33,8 @@ bool FileWriterExtension::setLogFile(const std::string &path)
         mFileHandle = nullptr;
     }
 
+    mFilePath = path;
+
     // Open the log file that we want to write to.
     mFileHandle = fopen(path.c_str(), "w+");
     if (nullptr == mFileHandle) {
@@ -71,6 +73,18 @@ int FileWriterExtension::getOpenErrorCode()
 std::string FileWriterExtension::getOpenErrorString()
 {
     return std::string(strerror(mErrorCode));
+}
+
+/**
+ * @brief FileWriterExtension::getFilePath - Return the path and file name of the log
+ *      file that we are currently writing to.
+ *
+ * @return std::string containing the file name and path to the log file we are writing
+ *      to.
+ */
+std::string FileWriterExtension::getFilePath()
+{
+    return mFilePath;
 }
 
 /**

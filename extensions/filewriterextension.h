@@ -24,6 +24,8 @@ public:
     int getOpenErrorCode();
     std::string getOpenErrorString();
 
+    std::string getFilePath();
+
     // Implement the pure virtual methods for the base class.
     void debug(const std::string &logline);
     void warning(const std::string &logline);
@@ -33,6 +35,7 @@ public:
 private:
     void writeLogLineToFile(const std::string logline);
 
+    std::string mFilePath;
     FILE *mFileHandle;
     int mErrorCode;
 };

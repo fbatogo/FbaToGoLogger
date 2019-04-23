@@ -11,7 +11,7 @@ namespace logger {
 
 namespace extension {
 
-class ConsoleWriterExtension : baseclass::WriterExtensionBase
+class ConsoleWriterExtension : public baseclass::WriterExtensionBase
 {
 public:
     ConsoleWriterExtension();
