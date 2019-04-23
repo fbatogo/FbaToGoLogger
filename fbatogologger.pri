@@ -9,11 +9,20 @@ CONFIG(using_qt) {
 
 SOURCES += \
         fbatogologger.cpp \
-    extensions/loggerextensionbase.cpp
+    $$PWD/extensiontemplates/loggerextensionbase.cpp \
+    $$PWD/extensiontemplates/modificationextensionbase.cpp \
+    $$PWD/extensiontemplates/writerextensionbase.cpp \
+    $$PWD/extensions/filewriterextension.cpp \
+    $$PWD/extensions/consolewriterextension.cpp
 
 HEADERS += \
         fbatogologger.h \
-    extensions/loggerextensionbase.h
+    $$PWD/extensiontemplates/loggerextensionbase.h \
+    $$PWD/extensiontemplates/modificationextensionbase.h \
+    $$PWD/extensiontemplates/writerextensionbase.cpp.autosave \
+    $$PWD/extensiontemplates/writerextensionbase.h \
+    $$PWD/extensions/filewriterextension.h \
+    $$PWD/extensions/consolewriterextension.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
