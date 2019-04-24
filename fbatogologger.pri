@@ -7,8 +7,11 @@ CONFIG(using_qt) {
     DEFINES *= USING_QT
 }
 
+# Include the current path in our include path.
+INCLUDEPATH += $$PWD
+
 SOURCES += \
-        fbatogologger.cpp \
+    $$PWD/fbatogologger.cpp \
     $$PWD/extensiontemplates/loggerextensionbase.cpp \
     $$PWD/extensiontemplates/modificationextensionbase.cpp \
     $$PWD/extensiontemplates/writerextensionbase.cpp \
@@ -16,10 +19,9 @@ SOURCES += \
     $$PWD/extensions/consolewriterextension.cpp
 
 HEADERS += \
-        fbatogologger.h \
+    $$PWD/fbatogologger.h \
     $$PWD/extensiontemplates/loggerextensionbase.h \
     $$PWD/extensiontemplates/modificationextensionbase.h \
-    $$PWD/extensiontemplates/writerextensionbase.cpp.autosave \
     $$PWD/extensiontemplates/writerextensionbase.h \
     $$PWD/extensions/filewriterextension.h \
     $$PWD/extensions/consolewriterextension.h
