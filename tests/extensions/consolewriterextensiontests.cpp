@@ -11,12 +11,25 @@ using namespace fbatogo::logger::extension;
 
 // XXX Add support for testing when the "using_qt" CONFIG setting is set.
 
-#ifndef USING_QT
+#ifdef USING_QT
+// A message handler to convert the qDebug/qWarning/qInfo/qCritical message to be output
+// over STDOUT.
+void myMessageOutput(QtMsgType, const QMessageLogContext &, const QString &msg)
+{
+    std::cout << msg.toStdString() << std::endl;
+}
+#endif // USING_QT
+
 TEST(ConsoleWriterExtensionTests, WriteLogsTest)
 {
     ConsoleWriterExtension writer;
     std::streambuf *oldCoutStream;
     std::ostringstream strCout;
+
+#ifdef USING_QT
+    // We need to configure a handler to redirect the output to STDOUT.
+    qInstallMessageHandler(myMessageOutput);
+#endif // USING_QT
 
     // Save the original cout stream.
     oldCoutStream = std::cout.rdbuf();
@@ -80,13 +93,10 @@ TEST(ConsoleWriterExtensionTests, WriteLogsTest)
 
     // Restore old cout.
     std::cout.rdbuf(oldCoutStream);
-}
 
-#else
-
-TEST(ConsoleWriterExtensionTests, WriteLogsQtTest)
-{
-    // XXX Implement!
-}
-
+#ifdef USING_QT
+    // Restore original QT message handler.
+    qInstallMessageHandler(nullptr);
 #endif // USING_QT
+}
+
