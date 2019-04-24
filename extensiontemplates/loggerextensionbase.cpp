@@ -16,19 +16,19 @@ LoggerExtensionBase::LoggerExtensionBase(const QString &qextensionName, int exte
 }
 #endif // USING_QT
 
-std::string LoggerExtensionBase::extensionName()
+std::string LoggerExtensionBase::extensionName() const
 {
     return mExtensionName;
 }
 
 #ifdef USING_QT
-QString LoggerExtensionBase::qstringExtensionName()
+QString LoggerExtensionBase::qstringExtensionName() const
 {
     return QString::fromStdString(mExtensionName);
 }
 #endif // USING_QT
 
-int LoggerExtensionBase::extensionType()
+int LoggerExtensionBase::extensionType() const
 {
     return mExtensionType;
 }

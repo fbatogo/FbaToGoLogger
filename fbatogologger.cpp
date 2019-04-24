@@ -20,16 +20,32 @@ using namespace logger;
  */
 bool FbaToGoLogger::logToFile(const std::string &path)
 {
-    extension::FileWriterExtension fileExtension;
+    extension::FileWriterExtension *fileExtension;
 
-    if (!fileExtension.setLogFile(path)) {
+    // Create the object.
+    fileExtension = new extension::FileWriterExtension();
+    if (nullptr == fileExtension) {
+        return false;
+    }
+
+    if (!fileExtension->setLogFile(path)) {
         error("Failed to open the log file '" + path + "' for writing!  Won't enable writing to a log file!");
-        error("    Error reason : " + fileExtension.getOpenErrorString());
+        error("    Error reason : " + fileExtension->getOpenErrorString());
+
+        // Clean up.
+        delete fileExtension;
+        fileExtension = nullptr;
+
         return false;
     }
 
     // Then, add our extension to the list of extensions.
-    addWriterExtension(fileExtension);
+    if (!addWriterExtension(fileExtension)) {
+        // Clean up the object.
+        delete fileExtension;
+        fileExtension = nullptr;
+        return false;
+    }
 
     return true;
 }
@@ -37,13 +53,27 @@ bool FbaToGoLogger::logToFile(const std::string &path)
 /**
  * @brief FbaToGoLogger::logToConsole - Convenience call to easily add a console
  *      writer extension to the write object extensions vector.
+ *
+ * @return true if the console logger was installed.  false on error.
  */
-void FbaToGoLogger::logToConsole()
+bool FbaToGoLogger::logToConsole()
 {
-    extension::ConsoleWriterExtension consoleExtension;
+    extension::ConsoleWriterExtension *consoleExtension;
+
+    consoleExtension = new extension::ConsoleWriterExtension();
+    if (nullptr == consoleExtension) {
+        return false;
+    }
 
     // Add it.
-    addWriterExtension(consoleExtension);
+    if (!addWriterExtension(consoleExtension)) {
+        // Clean up the object.
+        delete consoleExtension;
+        consoleExtension = nullptr;
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -51,19 +81,26 @@ void FbaToGoLogger::logToConsole()
  *      extension, as long as it doesn't already exist.
  *
  * @param newModifier - The new extension object to add.
+ * @param takeOwnership - true if this object should take ownership of the
+ *      extension object.  If this is true, then this object will handle
+ *      deleting the object when it needs to be destroyed.  If set to false,
+ *      the caller will be responsible for deleting the object, but making
+ *      sure that it is not in use!
  *
  * @return true if the modification object was added.  false if it wasn't
- *      added because another object already exists with the same name.
+ *      added because another object already exists with the same name.  If
+ *      false is returned, the caller needs to free the object it passed in,
+ *      even if \c takeOwnership was set to true!
  */
-bool FbaToGoLogger::addModificationExtension(const extension::baseclass::ModificationExtensionBase &newModifier)
+bool FbaToGoLogger::addModificationExtension(extension::baseclass::ModificationExtensionBase *newModifier, bool takeOwnership)
 {
-    if (findModificationExtensionExistsByName(newModifier.extensionName()) != std::numeric_limits<size_t>::max()) {
+    if (findModificationExtensionExistsByName(newModifier->extensionName()) != std::numeric_limits<size_t>::max()) {
         // Do nothing.
         return false;
     }
 
     // Otherwise, add it.
-    mModificationExtensions.push_back(newModifier);
+    mModificationExtensions.push_back(modificationExtensionContainer(newModifier, takeOwnership));
 
     return true;
 }
@@ -78,28 +115,31 @@ bool FbaToGoLogger::addModificationExtension(const extension::baseclass::Modific
  */
 bool FbaToGoLogger::removeModificationExtensionByName(const std::string &name)
 {
-    size_t index;
-    std::vector<extension::baseclass::ModificationExtensionBase> newVector;
-
-    index = findModificationExtensionExistsByName(name);
-    if (index == std::numeric_limits<size_t>::max()) {
-        // Didn't find it.
-        return false;
-    }
+    bool found = false;
+    std::vector<modificationExtensionContainer> newVector;
 
     // Found it, remove it from the vector.
     newVector.clear();
 
-    for (size_t i = 0; i < mModificationExtensions.size(); i++) {
-        if (i != index) {
-            newVector.push_back(mModificationExtensions.at(i));
+    for (auto & extension : mModificationExtensions) {
+        if (extension.first->extensionName() == name) {
+            // If we have ownership of it, delete it.
+            if (extension.second) {
+                delete extension.first;
+            }
+            found = true;
+        } else {
+            // Add it to our new vector.
+            newVector.push_back(extension);
         }
     }
 
-    // Update the vector.
-    mModificationExtensions = newVector;
+    if (found) {
+        // Update the vector, if it has been modified.
+        mModificationExtensions = newVector;
+    }
 
-    return true;
+    return found;
 }
 
 /**
@@ -108,6 +148,15 @@ bool FbaToGoLogger::removeModificationExtensionByName(const std::string &name)
  */
 void FbaToGoLogger::clearModificationExtensions()
 {
+    // Delete all of the objects that are owned by us.
+    for (auto & extension : mModificationExtensions) {
+        // If we have ownership of this object, delete it.
+        if (extension.second) {
+            delete extension.first;
+        }
+    }
+
+    // Then, clear out the vector.
     mModificationExtensions.clear();
 }
 
@@ -116,19 +165,24 @@ void FbaToGoLogger::clearModificationExtensions()
  *      as long as it doesn't already exist.
  *
  * @param newWriterExtension - The new writer extension object to add.
+ * @param takeOwnership - true if this object should take ownership of the
+ *      extension object.  If this is true, then this object will handle
+ *      deleting the object when it needs to be destroyed.  If set to false,
+ *      the caller will be responsible for deleting the object, but making
+ *      sure that it is not in use!
  *
  * @return true if the object was added.  false if it was rejected because
  *      an object with the same name is already registered.
  */
-bool FbaToGoLogger::addWriterExtension(const extension::baseclass::WriterExtensionBase &newWriterExtension)
+bool FbaToGoLogger::addWriterExtension(extension::baseclass::WriterExtensionBase *newWriterExtension, bool takeOwnership)
 {
-    if (findWriterExtensionExistsByName(newWriterExtension.extensionName()) != std::numeric_limits<size_t>::max()) {
+    if (findWriterExtensionExistsByName(newWriterExtension->extensionName()) != std::numeric_limits<size_t>::max()) {
         // Do nothing.
         return false;
     }
 
     // Add it to our vector.
-    mWriterExtensions.push_back(newWriterExtension);
+    mWriterExtensions.push_back(writerExtensionContainer(newWriterExtension, takeOwnership));
 
     return true;
 }
@@ -143,26 +197,26 @@ bool FbaToGoLogger::addWriterExtension(const extension::baseclass::WriterExtensi
  */
 bool FbaToGoLogger::removeWriterExtensionByName(const std::string &name)
 {
-    size_t index;
-    std::vector<extension::baseclass::WriterExtensionBase> newVector;
+    bool found = false;
+    std::vector<writerExtensionContainer> newVector;
 
-    index = findWriterExtensionExistsByName(name);
-    if (index == std::numeric_limits<size_t>::max()) {
-        // Didn't find it.
-        return false;
-    }
-
-    // Found it, remove it from the vector.
-    newVector.clear();
-
-    for (size_t i = 0; i < mWriterExtensions.size(); i++) {
-        if (i != index) {
-            newVector.push_back(mWriterExtensions.at(i));
+    for (auto & extension : mWriterExtensions) {
+        if (extension.first->extensionName() == name) {
+            // If we have ownership of it, delete it.
+            if (extension.second) {
+                delete extension.first;
+            }
+            found = true;
+        } else {
+            // Add it to our new vector.
+            newVector.push_back(extension);
         }
     }
 
-    // Update the vector.
-    mWriterExtensions = newVector;
+    if (found) {
+        // Update the vector, if it has been modified.
+        mWriterExtensions = newVector;
+    }
 
     return true;
 }
@@ -173,6 +227,15 @@ bool FbaToGoLogger::removeWriterExtensionByName(const std::string &name)
  */
 void FbaToGoLogger::clearWriterExtensions()
 {
+    // Delete all of the objects that are owned by us.
+    for (auto & extension : mWriterExtensions) {
+        // If we have ownership of this object, delete it.
+        if (extension.second) {
+            delete extension.first;
+        }
+    }
+
+    // Then, clear out the vector.
     mWriterExtensions.clear();
 }
 
@@ -211,7 +274,7 @@ void FbaToGoLogger::debug(const std::string &logline)
 
     // Iterate all of our writers, and write the log line to each one.
     for (auto & extension : mWriterExtensions) {
-        extension.debug(toWrite);
+        extension.first->debug(toWrite);
     }
 }
 
@@ -233,7 +296,7 @@ void FbaToGoLogger::warning(const std::string &logline)
 
     // Iterate all of our writers, and write the log line to each one.
     for (auto & extension : mWriterExtensions) {
-        extension.warning(toWrite);
+        extension.first->warning(toWrite);
     }
 }
 
@@ -255,7 +318,7 @@ void FbaToGoLogger::info(const std::string &logline)
 
     // Iterate all of our writers, and write the log line to each one.
     for (auto & extension : mWriterExtensions) {
-        extension.info(toWrite);
+        extension.first->info(toWrite);
     }
 }
 
@@ -277,7 +340,7 @@ void FbaToGoLogger::error(const std::string &logline)
 
     // Iterate all of our writers, and write the log line to each one.
     for (auto & extension : mWriterExtensions) {
-        extension.error(toWrite);
+        extension.first->error(toWrite);
     }
 }
 
@@ -355,7 +418,7 @@ void FbaToGoLogger::error(const QString &logline)
 size_t FbaToGoLogger::findModificationExtensionExistsByName(const std::string &name)
 {
     for (size_t i = 0; i < mModificationExtensions.size(); i++) {
-        if (mModificationExtensions.at(i).extensionName() == name) {
+        if (mModificationExtensions.at(i).first->extensionName() == name) {
             return i;
         }
     }
@@ -377,7 +440,7 @@ size_t FbaToGoLogger::findModificationExtensionExistsByName(const std::string &n
 size_t FbaToGoLogger::findWriterExtensionExistsByName(const std::string &name)
 {
     for (size_t i = 0; i < mWriterExtensions.size(); i++) {
-        if (mWriterExtensions.at(i).extensionName() == name) {
+        if (mWriterExtensions.at(i).first->extensionName() == name) {
             return i;
         }
     }
@@ -413,7 +476,7 @@ std::string FbaToGoLogger::modifyLine(const std::string &logline)
     std::string modifying = logline;
 
     for (auto & modifier : mModificationExtensions) {
-        modifying = modifier.parseLogLine(modifying);
+        modifying = modifier.first->parseLogLine(modifying);
     }
 
     return modifying;

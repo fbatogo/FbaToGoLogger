@@ -16,6 +16,9 @@ namespace fbatogo {
 
 namespace logger {
 
+typedef std::pair<extension::baseclass::ModificationExtensionBase *, bool> modificationExtensionContainer;
+typedef std::pair<extension::baseclass::WriterExtensionBase *, bool> writerExtensionContainer;
+
 /**
  * @brief The FbaToGoLogger class is the main class that should be used for all logging
  *      operations.  It allows management of any extensions that might be configured
@@ -27,13 +30,13 @@ class FbaToGoLogger
     static FbaToGoLogger *getInstance();
 
     bool logToFile(const std::string &path);
-    void logToConsole();
+    bool logToConsole();
 
-    bool addModificationExtension(const extension::baseclass::ModificationExtensionBase &newModifier);
+    bool addModificationExtension(extension::baseclass::ModificationExtensionBase *newModifier, bool takeOwnership = true);
     bool removeModificationExtensionByName(const std::string &name);
     void clearModificationExtensions();
 
-    bool addWriterExtension(const extension::baseclass::WriterExtensionBase &newWriterExtension);
+    bool addWriterExtension(extension::baseclass::WriterExtensionBase *newWriterExtension, bool takeOwnership = true);
     bool removeWriterExtensionByName(const std::string &name);
     void clearWriterExtensions();
 
@@ -62,8 +65,9 @@ private:
 
     std::string modifyLine(const std::string &logline);
 
-    std::vector<extension::baseclass::ModificationExtensionBase> mModificationExtensions;
-    std::vector<extension::baseclass::WriterExtensionBase> mWriterExtensions;
+    // The bool in the 2nd position indicates if we have taken ownership of the object.
+    std::vector<modificationExtensionContainer> mModificationExtensions;
+    std::vector<writerExtensionContainer> mWriterExtensions;
 
     // The tags we use for each log level.
     std::string mDebugTag;
