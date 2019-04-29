@@ -25,15 +25,13 @@ pipeline {
     }
     stage('SonarQube analysis') {        
       steps {
-        dir('tests') {
-          script {          
-            // requires SonarQube Scanner 2.8+          
-            def scannerHome = tool 'SonarQube Scanner';          
-            withSonarQubeEnv('SonarQube in the Cloud') {            
-              sh "${scannerHome}/bin/sonar-scanner"          
-            }
-	  }
-        }        
+        script {          
+          // requires SonarQube Scanner 2.8+          
+          def scannerHome = tool 'SonarQube Scanner';          
+          withSonarQubeEnv('SonarQube in the Cloud') {            
+            sh "${scannerHome}/bin/sonar-scanner"          
+          }
+        }
       }    
     }    
   }
