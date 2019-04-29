@@ -27,6 +27,7 @@ typedef std::pair<extension::baseclass::WriterExtensionBase *, bool> writerExten
  */
 class FbaToGoLogger
 {
+public:
     static FbaToGoLogger *getInstance();
 
     bool logToFile(const std::string &path);

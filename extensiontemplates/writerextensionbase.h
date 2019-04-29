@@ -14,7 +14,7 @@ namespace baseclass {
 class WriterExtensionBase : public LoggerExtensionBase
 {
 public:
-    WriterExtensionBase(const std::string &extensionName);
+    explicit WriterExtensionBase(const std::string &extensionName);
 
     virtual void debug(const std::string &logline) = 0;
     virtual void warning(const std::string &logline) = 0;

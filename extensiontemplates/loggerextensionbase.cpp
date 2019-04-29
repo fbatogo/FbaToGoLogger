@@ -2,17 +2,15 @@
 
 using namespace fbatogo::logger::extension::baseclass;
 
-LoggerExtensionBase::LoggerExtensionBase(const std::string &extensionName, int extensionType)
+LoggerExtensionBase::LoggerExtensionBase(const std::string &extensionName, int extensionType) :
+    mExtensionName(extensionName), mExtensionType(extensionType)
 {
-    mExtensionName = extensionName;
-    mExtensionType = extensionType;
 }
 
 #ifdef USING_QT
-LoggerExtensionBase::LoggerExtensionBase(const QString &qextensionName, int extensionType)
+LoggerExtensionBase::LoggerExtensionBase(const QString &qextensionName, int extensionType) :
+    mExtensionName(qextensionName.toStdString()), mExtensionType(extensionType)
 {
-    mExtensionName = qextensionName.toStdString();
-    mExtensionType = extensionType;
 }
 #endif // USING_QT
 

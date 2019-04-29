@@ -8,8 +8,8 @@
 #endif // USING_QT
 
 // Define our extension types.
-#define LOGGER_EXTENSION_TYPE_WRITER        1
-#define LOGGER_EXTENSION_TYPE_MODIFIER      2
+const size_t LOGGER_EXTENSION_TYPE_WRITER = 1;
+const size_t LOGGER_EXTENSION_TYPE_MODIFIER = 2;
 
 namespace fbatogo {
 

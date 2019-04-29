@@ -134,7 +134,7 @@ void FileWriterExtension::error(const std::string &logline)
  *
  * @param logline - The log line to write to the log file.
  */
-void FileWriterExtension::writeLogLineToFile(const std::string logline)
+void FileWriterExtension::writeLogLineToFile(const std::string &logline)
 {
     if (nullptr != mFileHandle) {
         fprintf(mFileHandle, "%s\n", logline.c_str());

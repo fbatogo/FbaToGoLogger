@@ -2,101 +2,55 @@
 
 #include <extensions/consolewriterextension.h>
 
-// Stuff needed to capture the STDOUT.
-#include <streambuf>
-#include <sstream>
-#include <iostream>
+#include <consolehelpers.h>
 
 using namespace fbatogo::logger::extension;
 
-// XXX Add support for testing when the "using_qt" CONFIG setting is set.
-
-#ifdef USING_QT
-// A message handler to convert the qDebug/qWarning/qInfo/qCritical message to be output
-// over STDOUT.
-void myMessageOutput(QtMsgType, const QMessageLogContext &, const QString &msg)
-{
-    std::cout << msg.toStdString() << std::endl;
-}
-#endif // USING_QT
-
 TEST(ConsoleWriterExtensionTests, WriteLogsTest)
 {
+    ConsoleHelpers conHelper;
     ConsoleWriterExtension writer;
-    std::streambuf *oldCoutStream;
-    std::ostringstream strCout;
 
 #ifdef USING_QT
     // We need to configure a handler to redirect the output to STDOUT.
-    qInstallMessageHandler(myMessageOutput);
+    ASSERT_TRUE(conHelper.captureQMessages());
 #endif // USING_QT
 
-    // Save the original cout stream.
-    oldCoutStream = std::cout.rdbuf();
-
-    // Set the new stream for cout.
-    std::cout.rdbuf( strCout.rdbuf() );
+    // Capture the STDOUT stream.
+    ASSERT_TRUE(conHelper.captureStdOut());
 
     // Write empty strings and check them.
     writer.debug("");
-    EXPECT_EQ("\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("\n", conHelper.stdOut());
 
     writer.error("");
-    EXPECT_EQ("\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("\n", conHelper.stdOut());
 
     writer.info("");
-    EXPECT_EQ("\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("\n", conHelper.stdOut());
 
     writer.warning("");
-    EXPECT_EQ("\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("\n", conHelper.stdOut());
 
     // Write a string with content.
     writer.debug("This is a debug line.");
-    EXPECT_EQ("This is a debug line.\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("This is a debug line.\n", conHelper.stdOut());
 
     writer.error("This is an error line.");
-    EXPECT_EQ("This is an error line.\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("This is an error line.\n", conHelper.stdOut());
 
     writer.warning("This is a warning line.");
-    EXPECT_EQ("This is a warning line.\n", strCout.str());
-
-    // Clear the stream.
-    strCout.str("");
-    strCout.clear();
+    EXPECT_EQ("This is a warning line.\n", conHelper.stdOut());
 
     writer.info("This is an info line.");
-    EXPECT_EQ("This is an info line.\n", strCout.str());
+    EXPECT_EQ("This is an info line.\n", conHelper.stdOut());
 
     // Restore old cout.
-    std::cout.rdbuf(oldCoutStream);
+    ASSERT_TRUE(conHelper.releaseStdOut());
 
 #ifdef USING_QT
     // Restore original QT message handler.
-    qInstallMessageHandler(nullptr);
+    ASSERT_TRUE(conHelper.releaseQMessages());
 #endif // USING_QT
 }
 

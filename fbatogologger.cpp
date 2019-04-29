@@ -9,6 +9,18 @@ using namespace fbatogo;
 using namespace logger;
 
 /**
+ * @brief FbaToGoLogger::getInstance - Get the singleton instance for the logger.
+ *
+ * @return FbaToGoLogger pointer.
+ */
+FbaToGoLogger *FbaToGoLogger::getInstance()
+{
+    static FbaToGoLogger singleton;
+
+    return &singleton;
+}
+
+/**
  * @brief FbaToGoLogger::logToFile - Convenience call to easily add a file writer
  *      extension to the writer object extensions vector.   The log file will be
  *      written to the path provided.

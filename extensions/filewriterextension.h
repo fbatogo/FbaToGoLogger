@@ -33,7 +33,7 @@ public:
     void error(const std::string &logline);
 
 private:
-    void writeLogLineToFile(const std::string logline);
+    void writeLogLineToFile(const std::string &logline);
 
     std::string mFilePath;
     FILE *mFileHandle;

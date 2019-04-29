@@ -14,7 +14,7 @@ namespace baseclass {
 class ModificationExtensionBase : public LoggerExtensionBase
 {
 public:
-    ModificationExtensionBase(const std::string &extensionName);
+    explicit ModificationExtensionBase(const std::string &extensionName);
 
     virtual std::string parseLogLine(const std::string &logLine) = 0;
 };
