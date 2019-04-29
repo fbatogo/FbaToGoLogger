@@ -2,6 +2,19 @@ QT       -= gui
 
 TARGET = FbaToGoLogger-Unittests
 TEMPLATE = app
+
+linux {
+  QMAKE_CFLAGS *= -ftest-coverage -fprofile-arcs
+  QMAKE_CXXFLAGS *= -ftest-coverage -fprofile-arcs
+  QMAKE_LFLAGS *= -ftest-coverage -fprofile-arcs
+  }
+
+# If we are told to use the address sanitizer.
+asan {
+    QMAKE_CFLAGS *= -fsanitize=address #-fsanitize-address-use-after-scope
+    QMAKE_LFLAGS *= -fsanitize=address
+}
+
   
 # Include the files that we will be testing.
 include(../fbatogologger.pri)
